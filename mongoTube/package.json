@@ -1,0 +1,16 @@
+{
+  "name": "mongotube",
+  "version": "1.0.0",
+  "description": "a fun project for youtube",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "PraveshBisaria",
+  "license": "ISC",
+  "dependencies": {
+    "mocha": "^7.0.1",
+    "mongoose": "^5.8.11",
+    "nodemon": "^2.0.2"
+  }
+}

@@ -1,0 +1,264 @@
+show dbs - shows all database created in the system
+--------
+use <db name> - creates a db and switches to it.
+until and unless the db contains any data, show dbs wont show it.
+-----
+db.<Collection Name>.insertOne(
+{
+	"key1" : "value1",
+	"key2" : val2,
+	"key3" : true
+}
+)
+
+db.<Collection Name>.insertMany(
+{
+	"key1" : "value1",
+	"key2" : val2,
+	"key3" : true
+},
+{
+	"key11" : "value11",
+	"key22" : val22,
+	"key33" : false
+}
+)
+
+above insertion returns a json/bson data with 2 properties : 
+{
+	"acknowledged" : true,
+	"insertedId" : ObjectId("<some id>")
+}
+
+eg:-
+
+eg:-
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("5d02743dcb1aa83d48aafaee")
+}
+---------
+db.<Collection Name>.find() - gives you all the data in the db of that collection. Each data has its own object id as appeared while inserting.
+db.<Collection Name>.find().pretty() - same purpose as above but just in a more readable format.
+
+eg:-
+
+db.studentData.find().pretty()
+{
+        "_id" : ObjectId("5d026f21cb1aa83d48aafaed"),
+        "name" : "Hitesh",
+        "email" : "hitesh@hiteshchoudhary.com",
+        "contact" : "9999999999",
+        "courseCount" : 4,
+        "isVerified" : true
+}
+{
+        "_id" : ObjectId("5d02743dcb1aa83d48aafaee"),
+        "name" : "Mary",
+        "email" : "mary@gmail.com"
+}
+----------
+we can have our own unique id instead of automatically generated id. use _id: <id value>, to the json/bson while insert.
+
+eg:-
+ db.studentData.insertOne({ name: "Harry", email: "harry@gmail.com", _id: "123abc-w" })
+{ "acknowledged" : true, "insertedId" : "123abc-w" }
+
+if you do not provide a unique id then it will throw an error.
+
+eg:-
+db.studentData.insertOne({ name: "Harry1", email: "harry1@gmail.com", _id: "123abc-w" })
+2019-06-13T21:42:19.707+0530 E QUERY    [js] WriteError: E11000 duplicate key error collection: students.studentData index: _id_ dup key: { : "123abc-w" } :
+WriteError({
+        "index" : 0,
+        "code" : 11000,
+        "errmsg" : "E11000 duplicate key error collection: students.studentData index: _id_ dup key: { : \"123abc-w\" }",
+        "op" : {
+                "name" : "Harry1",
+                "email" : "harry1@gmail.com",
+                "_id" : "123abc-w"
+        }
+})
+WriteError@src/mongo/shell/bulk_api.js:461:48
+Bulk/mergeBatchResults@src/mongo/shell/bulk_api.js:841:49
+Bulk/executeBatch@src/mongo/shell/bulk_api.js:906:13
+Bulk/this.execute@src/mongo/shell/bulk_api.js:1150:21
+DBCollection.prototype.insertOne@src/mongo/shell/crud_api.js:252:9
+@(shell):1:1
+----------
+ Application : Mobile, app, desktop
+ Analytics : ML, DataScientist
+ Admin : Managing data directly with shell.
+ ---------
+ Create :
+	insertOne(data, options)
+	insertMany(data, options)
+	
+ Read :
+	findOne(filter, options)
+	findOne(filter, options)
+	
+ Update : 
+	updateOne(filter, data, options)
+	updateMany(filter, data, options)
+	replaceOne(filter, data, options)
+	
+ Delete :
+	deleteOne(filter, options)
+	deleteMany(filter, options)
+-----------
+db.studentData.deleteOne({email : "mary@gmail.com"})
+deletes the whole entry/object which matches the filter.
+
+eg:-
+db.studentData.deleteOne({email: "mary@gmail.com"})
+{ "acknowledged" : true, "deletedCount" : 1 }
+------------
+db.studentData.updateOne({courseCount: 4}, {fbLoggedIn: "yes"})
+2019-06-15T08:31:33.587+0530 E QUERY    [js] Error: the update operation document must contain atomic operators :
+DBCollection.prototype.updateOne@src/mongo/shell/crud_api.js:542:1
+@(shell):1:1
+
+correct version of updateOne:
+db.studentData.updateOne({courseCount: 4}, {$set: {fbLoggedIn: "yes"}})
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+
+The first one will work only when you are not adding a new field to the object.
+The second one will make use of atomic operator to add a new field to the object through update operation
+
+------------
+
+ db.studentData.updateMany({fbLoggedIn: "yes"}, {$set: {delete: "yes"}})
+{ "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
+------------
+db.studentData.deleteMany({}) - this will delete everything in the collection.
+
+ eg:-
+ 
+ db.studentData.deleteMany({})
+{ "acknowledged" : true, "deletedCount" : 3 }
+-------------
+db.studentData.insertMany([{ "name": "Hitesh", "email": "hitesh@hiteshchoudhary.com", "contact": "9999999999", "courseCount": 4, "isVerified": true }, { "name": "Mark", "email": "mark@example.com", "contact": "9999999888", "courseCount": 2, "isVerified": false }])
+{
+        "acknowledged" : true,
+        "insertedIds" : [
+                ObjectId("5d04630ecb1aa83d48aafaf0"),
+                ObjectId("5d04630ecb1aa83d48aafaf1")
+        ]
+}
+
+above is to insert multiple data to the collection.
+-------------
+ db.studentData.updateMany({courseCount: {$gt: 1}}, {$set: {delete: "yes"}})
+{ "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
+
+$gt - greater than
+-------------
+ db.studentData.deleteMany({courseCount: {$lt: 5}})
+{ "acknowledged" : true, "deletedCount" : 2 }
+
+$lt - lesser than
+-------------
+db.studentData.find({courseCount: 2}).pretty()
+{
+        "_id" : ObjectId("5d046558cb1aa83d48aafaf3"),
+        "name" : "Mark",
+        "email" : "mark@example.com",
+        "contact" : "9999999888",
+        "courseCount" : 2,
+        "isVerified" : false
+}
+----------------
+db.studentData.findOne({courseCount: {$gt : 1}})
+{
+        "_id" : ObjectId("5d046558cb1aa83d48aafaf2"),
+        "name" : "Hitesh",
+        "email" : "hitesh@hiteshchoudhary.com",
+        "contact" : "9999999999",
+        "courseCount" : 4,
+        "isVerified" : true
+}
+
+pretty is not supported in findOne
+findOne - it returns the first match
+----------------
+db.studentData.update({}, {<data>})
+
+if update is used instead of updateMany/updateOne 
+then it will find the match update the entire document with <data> instead of updating only a particular field
+-----------------
+db.studentData.find().forEach((student) => {printjson(student)})
+db.studentData.find().forEach((student) => {printjson(student.email)})
+db.studentData.find({}, {_id : 0, email : 1, name : 1})
+db.studentData.find({}, {email : 1, _id : 0}).toArray()
+
+db.studentData.updateMany({}, {$set: {profilepic: {small: 50, med: 100, large: 200}}})
+
+db.studentData.find({"profilepic.med": 100})
+
+db.studentData.updateOne({name: "Hitesh"}, {$set : {"profilepic.large": 500}})
+
+db.studentData.find({"profilepic.large": 500}).pretty()
+
+db.studentData.updateOne({name: "Mark"}, {$set: {lastlogin: ["Monday", "Tuesday", "Thursday"]}})
+db.studentData.findOne({name: "Mark"}).lastlogin
+------------------
+Relations:
+
+A way in which one document talks to another
+
+db.purchase.drop()
+
+------------------
+mocha:
+
+npm install mocha mongoose nodemon
+
+
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
